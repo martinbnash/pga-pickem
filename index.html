@@ -3,6 +3,60 @@
 <head>
   <title>2026 PGA Pickem</title>
   <style>
+
+    <style>
+  body {
+    font-family: Arial;
+    background: #f4f6f8;
+    padding: 20px;
+  }
+
+  h1 {
+    text-align: center;
+  }
+
+  .section {
+    max-width: 800px;
+    margin: 0 auto 30px;
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+  }
+
+  /* 👇 ADD THIS RIGHT HERE (before </style>) */
+
+  #mastersBoard {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .pick-row {
+    display: flex;
+    overflow-x: auto;
+    background: #fafafa;
+    border-radius: 8px;
+    padding: 10px;
+  }
+
+  .pick-cell {
+    min-width: 120px;
+    padding: 8px;
+    margin-right: 6px;
+    background: white;
+    border-radius: 6px;
+    text-align: center;
+    font-size: 13px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  }
+
+  .pick-header {
+    font-weight: bold;
+    background: #2e7d32;
+    color: white;
+  }
+
+</style>
     body {
       font-family: Arial;
       background: #f4f6f8;
