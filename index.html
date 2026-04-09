@@ -82,6 +82,11 @@
   <table id="mastersTable"></table>
 </div>
 
+  <!-- Masters Leaderboard -->
+  <div class="section">
+  <h2>🏆 Live Masters Leaderboard</h2>
+  <table id="liveMastersTable"></table>
+</div>
 <script>
 
 // ✅ LEADERBOARD (A1:B8 EXACT, NO HEADER, NO SORT)
@@ -203,7 +208,62 @@ fetch("https://opensheet.elk.sh/164Znr317Kgm4lKudK1HZ7-JbPg8LW8AOCEjOEZ90Xk0/The
     });
 
   });
+// ✅ LIVE MASTERS LEADERBOARD
+fetch("https://site.web.api.espn.com/apis/v2/sports/golf/pga/leaderboard")
+  .then(res => res.json())
+  .then(data => {
 
+    const table = document.getElementById("liveMastersTable");
+    table.innerHTML = "";
+
+    const players = data.events[0].competitions[0].competitors.slice(0, 15);
+
+    // Header
+    const headerRow = document.createElement("tr");
+    ["Pos", "Player", "Score", "Today"].forEach(h => {
+      const th = document.createElement("th");
+      th.textContent = h;
+      headerRow.appendChild(th);
+    });
+    table.appendChild(headerRow);
+
+    players.forEach(p => {
+      const tr = document.createElement("tr");
+
+      const name = p.athlete.displayName;
+      const score = p.score;
+      const position = p.position?.displayName || "";
+      const today = p.linescores?.[0]?.value || "";
+
+      const tdPos = document.createElement("td");
+      tdPos.textContent = position;
+
+      const tdName = document.createElement("td");
+      tdName.textContent = name;
+
+      const tdScore = document.createElement("td");
+      tdScore.textContent = score;
+
+      const tdToday = document.createElement("td");
+      tdToday.textContent = today;
+
+      // color scores
+      if (score.includes("-")) tdScore.classList.add("score-under");
+      else if (score.includes("+")) tdScore.classList.add("score-over");
+      else if (score === "E") tdScore.classList.add("score-even");
+
+      tr.appendChild(tdPos);
+      tr.appendChild(tdName);
+      tr.appendChild(tdScore);
+      tr.appendChild(tdToday);
+
+      table.appendChild(tr);
+    });
+
+  })
+  .catch(err => {
+    console.error("Error loading live leaderboard:", err);
+  });
 </script>
 
 </body>
