@@ -111,9 +111,43 @@ function renderTable(elementId, data, limitRows = null, limitCols = null) {
 }
 
 // Leaderboard (A1:B8)
+// Leaderboard (simple + stable)
 fetch("https://opensheet.elk.sh/164Znr317Kgm4lKudK1HZ7-JbPg8LW8AOCEjOEZ90Xk0/TheMastersLeaderboard")
   .then(res => res.json())
-  .then(data => renderTable("leaderboardTable", data, 8, 2));
+  .then(data => {
+
+    const table = document.getElementById("leaderboardTable");
+    table.innerHTML = "";
+
+    // Only first 8 rows
+    const rows = data.slice(0, 8);
+
+    // Force exactly 2 columns (A + B)
+    const headers = Object.keys(rows[0]).slice(0, 2);
+
+    // Header
+    const headerRow = document.createElement("tr");
+    headers.forEach(h => {
+      const th = document.createElement("th");
+      th.textContent = h;
+      headerRow.appendChild(th);
+    });
+    table.appendChild(headerRow);
+
+    // Rows
+    rows.forEach(row => {
+      const tr = document.createElement("tr");
+
+      headers.forEach(h => {
+        const td = document.createElement("td");
+        td.textContent = row[h] || "";
+        tr.appendChild(td);
+      });
+
+      table.appendChild(tr);
+    });
+
+  });
 
 // Masters Picks with scores combined + colored
 fetch("https://opensheet.elk.sh/164Znr317Kgm4lKudK1HZ7-JbPg8LW8AOCEjOEZ90Xk0/TheMasters")
