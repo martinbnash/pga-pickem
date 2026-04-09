@@ -82,11 +82,7 @@
   <table id="mastersTable"></table>
 </div>
 
-<!-- Live Masters Leaderboard -->
-<div class="section">
-  <h2>🏆 Live Masters Leaderboard</h2>
-  <table id="liveMastersTable"></table>
-</div>
+
 
 <script>
 
@@ -202,58 +198,6 @@ fetch("https://opensheet.elk.sh/164Znr317Kgm4lKudK1HZ7-JbPg8LW8AOCEjOEZ90Xk0/The
 
   });
 
-
-fetch("https://api.allorigins.win/raw?url=https://statdata.pgatour.com/r/033/leaderboard-v2mini.json")
-  .then(res => res.json())
-  .then(data => {
-
-    const table = document.getElementById("liveMastersTable");
-    table.innerHTML = "";
-
-    const players = data.leaderboard.players.slice(0, 15);
-
-    const headerRow = document.createElement("tr");
-    ["Pos", "Player", "Score", "Thru"].forEach(h => {
-      const th = document.createElement("th");
-      th.textContent = h;
-      headerRow.appendChild(th);
-    });
-    table.appendChild(headerRow);
-
-    players.forEach(p => {
-      const tr = document.createElement("tr");
-
-      const name = p.player_bio.first_name + " " + p.player_bio.last_name;
-      const score = p.total;
-      const pos = p.current_position;
-      const thru = p.thru;
-
-      const tdPos = document.createElement("td");
-      tdPos.textContent = pos;
-
-      const tdName = document.createElement("td");
-      tdName.textContent = name;
-
-      const tdScore = document.createElement("td");
-      tdScore.textContent = score;
-
-      const tdThru = document.createElement("td");
-      tdThru.textContent = thru;
-
-      if (score.includes("-")) tdScore.classList.add("score-under");
-      else if (score.includes("+")) tdScore.classList.add("score-over");
-      else if (score === "E") tdScore.classList.add("score-even");
-
-      tr.appendChild(tdPos);
-      tr.appendChild(tdName);
-      tr.appendChild(tdScore);
-      tr.appendChild(tdThru);
-
-      table.appendChild(tr);
-    });
-
-  })
-  .catch(err => console.error("PGA data error:", err));
 
 // 🔄 AUTO REFRESH EVERY 30 SECONDS
 setInterval(() => location.reload(), 30000);
