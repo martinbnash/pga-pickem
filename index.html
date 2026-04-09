@@ -94,20 +94,39 @@ fetch("https://opensheet.elk.sh/164Znr317Kgm4lKudK1HZ7-JbPg8LW8AOCEjOEZ90Xk0/The
 
     const rows = data.slice(0, 8);
 
+    const keys = Object.keys(rows[0]);
+
+    // ✅ Convert score to number
+    function parseScore(score) {
+      if (!score) return 999;
+      if (score === "E") return 0;
+      return parseInt(score.replace("+", "").trim());
+    }
+
+    // 🔥 SORT LOW → HIGH
+    rows.sort((a, b) => {
+      const scoreA = parseScore(a[keys[1]]);
+      const scoreB = parseScore(b[keys[1]]);
+      return scoreA - scoreB;
+    });
+
+    // BUILD TABLE
     rows.forEach(row => {
       const tr = document.createElement("tr");
 
-      // 🔥 FORCE column order using VALUES (not keys)
-      const values = Object.values(row);
-
-      const name = values[0] || "";
-      const score = values[1] || "";
+      const name = row[keys[0]] || "";
+      const score = row[keys[1]] || "";
 
       const tdName = document.createElement("td");
       tdName.textContent = name;
 
       const tdScore = document.createElement("td");
       tdScore.textContent = score;
+
+      // optional color
+      if (score.includes("-")) tdScore.classList.add("score-under");
+      else if (score.includes("+")) tdScore.classList.add("score-over");
+      else if (score === "E") tdScore.classList.add("score-even");
 
       tr.appendChild(tdName);
       tr.appendChild(tdScore);
