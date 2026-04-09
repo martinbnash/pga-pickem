@@ -3,60 +3,24 @@
 <head>
   <title>2026 PGA Pickem</title>
   <style>
-
-   
     body {
       font-family: Arial;
-      background: #f4f6f8;
       padding: 20px;
+      background: #f5f5f5;
     }
 
     h1 {
       text-align: center;
-      margin-bottom: 30px;
     }
 
     .section {
-      max-width: 800px;
-      margin: 0 auto 30px;
+      margin-top: 30px;
       background: white;
       padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
 
-    .leaderboard-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 16px;
-      margin: 8px 0;
-      border-radius: 8px;
-      background: #fafafa;
-      font-size: 18px;
-    }
-
-    .rank {
-      font-weight: bold;
-      width: 40px;
-    }
-
-    .name {
-      flex: 1;
-      text-align: left;
-      padding-left: 10px;
-    }
-
-    .score {
-      font-weight: bold;
-    }
-
-    /* Top 3 styling */
-    .first { background: #fff8e1; }
-    .second { background: #f1f1f1; }
-    .third { background: #fff3e0; }
-
-    /* Picks table stays simple */
     table {
       width: 100%;
       border-collapse: collapse;
@@ -65,9 +29,8 @@
 
     th, td {
       border: 1px solid #ddd;
-      padding: 6px;
+      padding: 8px;
       text-align: center;
-      font-size: 12px;
     }
 
     th {
@@ -75,6 +38,9 @@
       color: white;
     }
 
+    .leaderboard th {
+      background: #1565c0;
+    }
   </style>
 </head>
 
@@ -82,58 +48,35 @@
 
 <h1>🏌️ 2026 PGA Pickem</h1>
 
+<!-- Leaderboard -->
 <div class="section">
   <h2>Leaderboard</h2>
-  <div id="leaderboard"></div>
+  <table id="leaderboardTable" class="leaderboard"></table>
 </div>
 
+<!-- Masters Picks -->
 <div class="section">
   <h2>The Masters Picks</h2>
-  <div id="mastersBoard"></div>
+  <table id="mastersTable"></table>
 </div>
 
 <script>
 
-// ESPN-style leaderboard
-function renderLeaderboard(data) {
-  const container = document.getElementById("leaderboard");
-  container.innerHTML = "";
-
-  // Detect columns
-  const keys = Object.keys(data[0]);
-  const nameKey = keys[0];
-  const scoreKey = keys[1];
-
-  // Sort descending
-  data.sort((a, b) => Number(b[scoreKey]) - Number(a[scoreKey]));
-
-  data.forEach((row, index) => {
-    const div = document.createElement("div");
-
-    let className = "leaderboard-row";
-    if (index === 0) className += " first";
-    if (index === 1) className += " second";
-    if (index === 2) className += " third";
-
-    div.className = className;
-
-    div.innerHTML = `
-      <div class="rank">#${index + 1}</div>
-      <div class="name">${row[nameKey]}</div>
-      <div class="score">${row[scoreKey]}</div>
-    `;
-
-    container.appendChild(div);
-  });
-}
-
-// Picks table
-function renderTable(elementId, data) {
+// Simple table renderer
+function renderTable(elementId, data, limitRows = null, limitCols = null) {
   const table = document.getElementById(elementId);
   table.innerHTML = "";
 
-  const headers = Object.keys(data[0]);
+  // Limit rows if needed
+  if (limitRows) data = data.slice(0, limitRows);
 
+  // Get headers
+  let headers = Object.keys(data[0]);
+
+  // Limit columns if needed
+  if (limitCols) headers = headers.slice(0, limitCols);
+
+  // Header row
   const headerRow = document.createElement("tr");
   headers.forEach(h => {
     const th = document.createElement("th");
@@ -142,63 +85,27 @@ function renderTable(elementId, data) {
   });
   table.appendChild(headerRow);
 
+  // Data rows
   data.forEach(row => {
     const tr = document.createElement("tr");
     headers.forEach(h => {
       const td = document.createElement("td");
-      td.textContent = row[h];
+      td.textContent = row[h] || "";
       tr.appendChild(td);
     });
     table.appendChild(tr);
   });
 }
 
-// Fetch Leaderboard
+// Leaderboard (A1:B8)
 fetch("https://opensheet.elk.sh/164Znr317Kgm4lKudK1HZ7-JbPg8LW8AOCEjOEZ90Xk0/TheMastersLeaderboard")
   .then(res => res.json())
-  .then(data => renderLeaderboard(data));
+  .then(data => renderTable("leaderboardTable", data, 8, 2));
 
-// Fetch Picks
+// Masters Picks (A1:H16)
 fetch("https://opensheet.elk.sh/164Znr317Kgm4lKudK1HZ7-JbPg8LW8AOCEjOEZ90Xk0/TheMasters")
   .then(res => res.json())
-  .then(data => {
-
-    const container = document.getElementById("mastersBoard");
-    container.innerHTML = "";
-
-    // Limit rows + columns
-    const rows = data.slice(0, 16);
-    const headers = Object.keys(rows[0]).slice(0, 8);
-
-    // Header row
-    const headerDiv = document.createElement("div");
-    headerDiv.className = "pick-row";
-
-    headers.forEach(h => {
-      const cell = document.createElement("div");
-      cell.className = "pick-cell pick-header";
-      cell.textContent = h;
-      headerDiv.appendChild(cell);
-    });
-
-    container.appendChild(headerDiv);
-
-    // Data rows
-    rows.forEach(row => {
-      const rowDiv = document.createElement("div");
-      rowDiv.className = "pick-row";
-
-      headers.forEach(h => {
-        const cell = document.createElement("div");
-        cell.className = "pick-cell";
-        cell.textContent = row[h] || "-";
-        rowDiv.appendChild(cell);
-      });
-
-      container.appendChild(rowDiv);
-    });
-
-  });
+  .then(data => renderTable("mastersTable", data, 16, 8));
 
 </script>
 
