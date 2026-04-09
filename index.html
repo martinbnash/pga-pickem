@@ -93,25 +93,29 @@ fetch("https://opensheet.elk.sh/164Znr317Kgm4lKudK1HZ7-JbPg8LW8AOCEjOEZ90Xk0/The
     table.innerHTML = "";
 
     const rows = data.slice(0, 8);
-    const keys = Object.keys(rows[0]).slice(0, 2);
 
     rows.forEach(row => {
       const tr = document.createElement("tr");
 
-      const tdLeft = document.createElement("td");
-      tdLeft.textContent = row[keys[0]] || "";
+      // 🔥 FORCE column order using VALUES (not keys)
+      const values = Object.values(row);
 
-      const tdRight = document.createElement("td");
-      tdRight.textContent = row[keys[1]] || "";
+      const name = values[0] || "";
+      const score = values[1] || "";
 
-      tr.appendChild(tdLeft);
-      tr.appendChild(tdRight);
+      const tdName = document.createElement("td");
+      tdName.textContent = name;
+
+      const tdScore = document.createElement("td");
+      tdScore.textContent = score;
+
+      tr.appendChild(tdName);
+      tr.appendChild(tdScore);
 
       table.appendChild(tr);
     });
 
   });
-
 
 // ✅ MASTERS PICKS (UNCHANGED)
 fetch("https://opensheet.elk.sh/164Znr317Kgm4lKudK1HZ7-JbPg8LW8AOCEjOEZ90Xk0/TheMasters")
