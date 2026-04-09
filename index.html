@@ -87,7 +87,7 @@
 
 <script>
 
-// ✅ LEADERBOARD (stable version)
+// ✅ LEADERBOARD (stable)
 fetch("https://opensheet.elk.sh/164Znr317Kgm4lKudK1HZ7-JbPg8LW8AOCEjOEZ90Xk0/TheMastersLeaderboard")
   .then(res => res.json())
   .then(data => {
@@ -121,7 +121,7 @@ fetch("https://opensheet.elk.sh/164Znr317Kgm4lKudK1HZ7-JbPg8LW8AOCEjOEZ90Xk0/The
   });
 
 
-// ✅ MASTERS PICKS (combined + colored + bottom row highlight)
+// ✅ MASTERS PICKS (FIXED + SCORES + COLORS)
 fetch("https://opensheet.elk.sh/164Znr317Kgm4lKudK1HZ7-JbPg8LW8AOCEjOEZ90Xk0/TheMasters")
   .then(res => res.json())
   .then(data => {
@@ -132,8 +132,9 @@ fetch("https://opensheet.elk.sh/164Znr317Kgm4lKudK1HZ7-JbPg8LW8AOCEjOEZ90Xk0/The
     const rows = data.slice(0, 16);
     const headers = Object.keys(rows[0]).slice(0, 8);
 
-    const picks = rows.slice(1, 9);   // A2–A9
-    const scores = rows.slice(9, 17); // A10–A17
+    // ✅ FIXED ranges (includes first row now)
+    const picks = rows.slice(0, 8);   // A1–A8
+    const scores = rows.slice(8, 16); // A9–A16
 
     // Header
     const headerRow = document.createElement("tr");
@@ -149,7 +150,7 @@ fetch("https://opensheet.elk.sh/164Znr317Kgm4lKudK1HZ7-JbPg8LW8AOCEjOEZ90Xk0/The
       const scoreRow = scores[i] || {};
       const tr = document.createElement("tr");
 
-      // ⭐ Highlight LAST row
+      // Highlight bottom row
       if (i === picks.length - 1) {
         tr.classList.add("highlight-bottom");
       }
