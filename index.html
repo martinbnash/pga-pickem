@@ -62,25 +62,33 @@
 
 <script>
 
-// Simple table renderer
 function renderTable(elementId, data, limitRows = null, limitCols = null) {
   const table = document.getElementById(elementId);
   table.innerHTML = "";
 
-  // Limit rows if needed
+  // Remove bad/empty rows
+  data = data.filter(row => row && Object.values(row).some(v => v));
+
+  // Limit rows
   if (limitRows) data = data.slice(0, limitRows);
 
-  // Get headers
-  let headers = Object.keys(data[0]);
+  // Get headers safely
+  let headers = Object.keys(data[0] || {});
 
-  // Limit columns if needed
+  // Limit columns
   if (limitCols) headers = headers.slice(0, limitCols);
+
+  // 🛑 If no headers, stop (prevents broken layout)
+  if (headers.length === 0) {
+    table.innerHTML = "<tr><td>No data</td></tr>";
+    return;
+  }
 
   // Header row
   const headerRow = document.createElement("tr");
   headers.forEach(h => {
     const th = document.createElement("th");
-    th.textContent = h;
+    th.textContent = h || "";
     headerRow.appendChild(th);
   });
   table.appendChild(headerRow);
@@ -96,7 +104,6 @@ function renderTable(elementId, data, limitRows = null, limitCols = null) {
     table.appendChild(tr);
   });
 }
-
 // Leaderboard (A1:B8)
 fetch("https://opensheet.elk.sh/164Znr317Kgm4lKudK1HZ7-JbPg8LW8AOCEjOEZ90Xk0/TheMastersLeaderboard")
   .then(res => res.json())
