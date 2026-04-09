@@ -3,6 +3,11 @@
 <head>
   <title>2026 PGA Pickem</title>
   <style>
+
+    .highlight-row {
+  background-color: #fff3cd;
+  font-weight: bold;
+}
     body {
       font-family: Arial;
       padding: 20px;
@@ -94,8 +99,13 @@ function renderTable(elementId, data, limitRows = null, limitCols = null) {
   table.appendChild(headerRow);
 
   // Data rows
-  data.forEach(row => {
-    const tr = document.createElement("tr");
+ data.forEach((row, index) => {
+  const tr = document.createElement("tr");
+
+  // Highlight 9th row (index 8)
+  if (index === 8 && elementId === "mastersTable") {
+    tr.classList.add("highlight-row");
+  }
     headers.forEach(h => {
       const td = document.createElement("td");
       td.textContent = row[h] || "";
