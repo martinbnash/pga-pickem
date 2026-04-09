@@ -3,6 +3,12 @@
 <head>
   <title>2026 PGA Pickem</title>
   <style>
+
+    .highlight-row {
+  background-color: #ffe082;
+  font-weight: bold;
+  border-top: 2px solid #f9a825;
+}
     body {
       font-family: Arial;
       padding: 20px;
@@ -31,7 +37,6 @@
       border: 1px solid #ddd;
       padding: 8px;
       text-align: center;
-      font-size: 13px;
     }
 
     th {
@@ -41,22 +46,6 @@
 
     .leaderboard th {
       background: #1565c0;
-    }
-
-    /* Score colors */
-    .score-under {
-      color: green;
-      font-weight: bold;
-    }
-
-    .score-over {
-      color: red;
-      font-weight: bold;
-    }
-
-    .score-even {
-      color: #555;
-      font-weight: bold;
     }
   </style>
 </head>
@@ -79,28 +68,45 @@
 
 <script>
 
-// Simple table renderer (for leaderboard)
 function renderTable(elementId, data, limitRows = null, limitCols = null) {
   const table = document.getElementById(elementId);
   table.innerHTML = "";
 
+  // Remove bad/empty rows
   data = data.filter(row => row && Object.values(row).some(v => v));
 
+  // Limit rows
   if (limitRows) data = data.slice(0, limitRows);
 
+  // Get headers safely
   let headers = Object.keys(data[0] || {});
+
+  // Limit columns
   if (limitCols) headers = headers.slice(0, limitCols);
 
+  // 🛑 If no headers, stop (prevents broken layout)
+  if (headers.length === 0) {
+    table.innerHTML = "<tr><td>No data</td></tr>";
+    return;
+  }
+
+  // Header row
   const headerRow = document.createElement("tr");
   headers.forEach(h => {
     const th = document.createElement("th");
-    th.textContent = h;
+    th.textContent = h || "";
     headerRow.appendChild(th);
   });
   table.appendChild(headerRow);
 
-  data.forEach(row => {
-    const tr = document.createElement("tr");
+  // Data rows
+ data.forEach((row, index) => {
+  const tr = document.createElement("tr");
+
+  // Highlight 8th row (index 8)
+  if (index === 7 && elementId === "mastersTable") {
+    tr.classList.add("highlight-row");
+  }
     headers.forEach(h => {
       const td = document.createElement("td");
       td.textContent = row[h] || "";
@@ -109,105 +115,15 @@ function renderTable(elementId, data, limitRows = null, limitCols = null) {
     table.appendChild(tr);
   });
 }
-
 // Leaderboard (A1:B8)
-// Leaderboard (simple + stable)
 fetch("https://opensheet.elk.sh/164Znr317Kgm4lKudK1HZ7-JbPg8LW8AOCEjOEZ90Xk0/TheMastersLeaderboard")
   .then(res => res.json())
-  .then(data => {
+  .then(data => renderTable("leaderboardTable", data, 8, 2));
 
-    const table = document.getElementById("leaderboardTable");
-    table.innerHTML = "";
-
-    // Only first 8 rows
-    const rows = data.slice(0, 8);
-
-    // Force exactly 2 columns (A + B)
-    const headers = Object.keys(rows[0]).slice(0, 2);
-
-    // Header
-    const headerRow = document.createElement("tr");
-    headers.forEach(h => {
-      const th = document.createElement("th");
-      th.textContent = h;
-      headerRow.appendChild(th);
-    });
-    table.appendChild(headerRow);
-
-    // Rows
-    rows.forEach(row => {
-      const tr = document.createElement("tr");
-
-      headers.forEach(h => {
-        const td = document.createElement("td");
-        td.textContent = row[h] || "";
-        tr.appendChild(td);
-      });
-
-      table.appendChild(tr);
-    });
-
-  });
-
-// Masters Picks with scores combined + colored
+// Masters Picks (A1:H16)
 fetch("https://opensheet.elk.sh/164Znr317Kgm4lKudK1HZ7-JbPg8LW8AOCEjOEZ90Xk0/TheMasters")
   .then(res => res.json())
-  .then(data => {
-
-    const table = document.getElementById("mastersTable");
-    table.innerHTML = "";
-
-    const rows = data.slice(0, 16);
-    const headers = Object.keys(rows[0]).slice(0, 8);
-
-    const picks = rows.slice(1, 9);   // A2–A9
-    const scores = rows.slice(9, 17); // A10–A17
-
-    // Header
-    const headerRow = document.createElement("tr");
-    headers.forEach(h => {
-      const th = document.createElement("th");
-      th.textContent = h;
-      headerRow.appendChild(th);
-    });
-    table.appendChild(headerRow);
-
-    // Combine picks + scores
-    picks.forEach((pickRow, i) => {
-      const scoreRow = scores[i] || {};
-      const tr = document.createElement("tr");
-
-      headers.forEach(h => {
-        const td = document.createElement("td");
-
-        const player = pickRow[h] || "";
-        const score = scoreRow[h] || "";
-
-        if (score) {
-          const span = document.createElement("span");
-
-          let scoreClass = "score-even";
-
-          if (score.includes("-")) scoreClass = "score-under";
-          else if (score.includes("+")) scoreClass = "score-over";
-          else if (score === "E" || score === "0") scoreClass = "score-even";
-
-          span.className = scoreClass;
-          span.textContent = ` (${score})`;
-
-          td.textContent = player;
-          td.appendChild(span);
-        } else {
-          td.textContent = player;
-        }
-
-        tr.appendChild(td);
-      });
-
-      table.appendChild(tr);
-    });
-
-  });
+  .then(data => renderTable("mastersTable", data, 16, 8));
 
 </script>
 
