@@ -103,8 +103,8 @@ function renderTable(elementId, data, limitRows = null, limitCols = null) {
  data.forEach((row, index) => {
   const tr = document.createElement("tr");
 
-  // Highlight 9th row (index 8)
-  if (index === 8 && elementId === "mastersTable") {
+  // Highlight 8th row (index 8)
+  if (index === 7 && elementId === "mastersTable") {
     tr.classList.add("highlight-row");
   }
     headers.forEach(h => {
