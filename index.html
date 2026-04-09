@@ -43,7 +43,6 @@
       background: #1565c0;
     }
 
-    /* Score colors */
     .score-under {
       color: green;
       font-weight: bold;
@@ -59,13 +58,11 @@
       font-weight: bold;
     }
 
-    /* Bottom row highlight */
     .highlight-bottom {
       background-color: #bbdefb;
       font-weight: bold;
       border-top: 3px solid #1976d2;
     }
-
   </style>
 </head>
 
@@ -73,13 +70,11 @@
 
 <h1>🏌️ 2026 PGA Pickem</h1>
 
-<!-- Leaderboard -->
 <div class="section">
   <h2>Leaderboard</h2>
   <table id="leaderboardTable" class="leaderboard"></table>
 </div>
 
-<!-- Masters Picks -->
 <div class="section">
   <h2>The Masters Picks</h2>
   <table id="mastersTable"></table>
@@ -87,7 +82,15 @@
 
 <script>
 
-// ✅ LEADERBOARD (stable)
+// ✅ SCORE PARSER
+function parseScore(score) {
+  if (!score) return 999;
+  if (score === "E") return 0;
+  return parseInt(score.replace("+", "").trim());
+}
+
+
+// ✅ LEADERBOARD (FIXED)
 fetch("https://opensheet.elk.sh/164Znr317Kgm4lKudK1HZ7-JbPg8LW8AOCEjOEZ90Xk0/TheMastersLeaderboard")
   .then(res => res.json())
   .then(data => {
@@ -95,25 +98,42 @@ fetch("https://opensheet.elk.sh/164Znr317Kgm4lKudK1HZ7-JbPg8LW8AOCEjOEZ90Xk0/The
     const table = document.getElementById("leaderboardTable");
     table.innerHTML = "";
 
-    const rows = data.slice(0, 8);
-    const headers = Object.keys(rows[0]).slice(0, 2);
+    let rows = data.slice(0, 8);
 
+    const keys = Object.keys(rows[0]);
+
+    const nameKey = keys[0];
+    const scoreKey = keys[1];
+
+    // 🔥 SORT LOW → HIGH
+    rows.sort((a, b) => parseScore(a[scoreKey]) - parseScore(b[scoreKey]));
+
+    // HEADER
     const headerRow = document.createElement("tr");
-    headers.forEach(h => {
-      const th = document.createElement("th");
-      th.textContent = h;
-      headerRow.appendChild(th);
-    });
+
+    const thName = document.createElement("th");
+    thName.textContent = nameKey;
+
+    const thScore = document.createElement("th");
+    thScore.textContent = scoreKey;
+
+    headerRow.appendChild(thName);
+    headerRow.appendChild(thScore);
     table.appendChild(headerRow);
 
+    // ROWS
     rows.forEach(row => {
       const tr = document.createElement("tr");
 
-      headers.forEach(h => {
-        const td = document.createElement("td");
-        td.textContent = row[h] || "";
-        tr.appendChild(td);
-      });
+      const tdName = document.createElement("td");
+      tdName.textContent = row[nameKey] || "";
+
+      const tdScore = document.createElement("td");
+      tdScore.textContent = row[scoreKey] || "";
+
+      // Name LEFT, Score RIGHT
+      tr.appendChild(tdName);
+      tr.appendChild(tdScore);
 
       table.appendChild(tr);
     });
@@ -121,7 +141,7 @@ fetch("https://opensheet.elk.sh/164Znr317Kgm4lKudK1HZ7-JbPg8LW8AOCEjOEZ90Xk0/The
   });
 
 
-// ✅ MASTERS PICKS (final version)
+// ✅ MASTERS PICKS (UNCHANGED WORKING VERSION)
 fetch("https://opensheet.elk.sh/164Znr317Kgm4lKudK1HZ7-JbPg8LW8AOCEjOEZ90Xk0/TheMasters")
   .then(res => res.json())
   .then(data => {
@@ -132,10 +152,9 @@ fetch("https://opensheet.elk.sh/164Znr317Kgm4lKudK1HZ7-JbPg8LW8AOCEjOEZ90Xk0/The
     const rows = data.slice(0, 16);
     const headers = Object.keys(rows[0]).slice(0, 8);
 
-    const picks = rows.slice(0, 8);   // A1–A8
-    const scores = rows.slice(8, 16); // A9–A16
+    const picks = rows.slice(0, 8);
+    const scores = rows.slice(8, 16);
 
-    // Header
     const headerRow = document.createElement("tr");
     headers.forEach(h => {
       const th = document.createElement("th");
@@ -144,7 +163,6 @@ fetch("https://opensheet.elk.sh/164Znr317Kgm4lKudK1HZ7-JbPg8LW8AOCEjOEZ90Xk0/The
     });
     table.appendChild(headerRow);
 
-    // Rows
     picks.forEach((pickRow, i) => {
       const scoreRow = scores[i] || {};
       const tr = document.createElement("tr");
@@ -161,7 +179,6 @@ fetch("https://opensheet.elk.sh/164Znr317Kgm4lKudK1HZ7-JbPg8LW8AOCEjOEZ90Xk0/The
         const player = pickRow[h] || "";
         const score = scoreRow[h] || "";
 
-        // ❌ LAST ROW = NO MERGE
         if (isLastRow) {
           td.textContent = player;
         } else {
