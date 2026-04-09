@@ -70,11 +70,13 @@
 
 <h1>🏌️ 2026 PGA Pickem</h1>
 
+<!-- Leaderboard -->
 <div class="section">
   <h2>Leaderboard</h2>
   <table id="leaderboardTable" class="leaderboard"></table>
 </div>
 
+<!-- Masters Picks -->
 <div class="section">
   <h2>The Masters Picks</h2>
   <table id="mastersTable"></table>
@@ -82,15 +84,7 @@
 
 <script>
 
-// ✅ Convert score to number
-function parseScore(score) {
-  if (!score) return 999;
-  if (score === "E") return 0;
-  return parseInt(score.replace("+", "").trim());
-}
-
-
-// ✅ LEADERBOARD (AUTO FIXED)
+// ✅ LEADERBOARD (A1:B8 EXACT, NO HEADER, NO SORT)
 fetch("https://opensheet.elk.sh/164Znr317Kgm4lKudK1HZ7-JbPg8LW8AOCEjOEZ90Xk0/TheMastersLeaderboard")
   .then(res => res.json())
   .then(data => {
@@ -98,53 +92,20 @@ fetch("https://opensheet.elk.sh/164Znr317Kgm4lKudK1HZ7-JbPg8LW8AOCEjOEZ90Xk0/The
     const table = document.getElementById("leaderboardTable");
     table.innerHTML = "";
 
-    let rows = data.slice(0, 8);
-    const keys = Object.keys(rows[0]);
+    const rows = data.slice(0, 8);
+    const keys = Object.keys(rows[0]).slice(0, 2);
 
-    // 🔥 Detect which column is score
-    let scoreKey, nameKey;
-
-    keys.forEach(k => {
-      const val = rows[0][k];
-
-      if (typeof val === "string" && (val.includes("-") || val.includes("+") || val === "E")) {
-        scoreKey = k;
-      }
-    });
-
-    // fallback if needed
-    if (!scoreKey) scoreKey = keys[1];
-
-    nameKey = keys.find(k => k !== scoreKey);
-
-    // 🔥 SORT
-    rows.sort((a, b) => parseScore(a[scoreKey]) - parseScore(b[scoreKey]));
-
-    // HEADER
-    const headerRow = document.createElement("tr");
-
-    const thName = document.createElement("th");
-    thName.textContent = nameKey;
-
-    const thScore = document.createElement("th");
-    thScore.textContent = scoreKey;
-
-    headerRow.appendChild(thName);
-    headerRow.appendChild(thScore);
-    table.appendChild(headerRow);
-
-    // ROWS
     rows.forEach(row => {
       const tr = document.createElement("tr");
 
-      const tdName = document.createElement("td");
-      tdName.textContent = row[nameKey] || "";
+      const tdLeft = document.createElement("td");
+      tdLeft.textContent = row[keys[0]] || "";
 
-      const tdScore = document.createElement("td");
-      tdScore.textContent = row[scoreKey] || "";
+      const tdRight = document.createElement("td");
+      tdRight.textContent = row[keys[1]] || "";
 
-      tr.appendChild(tdName);
-      tr.appendChild(tdScore);
+      tr.appendChild(tdLeft);
+      tr.appendChild(tdRight);
 
       table.appendChild(tr);
     });
