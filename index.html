@@ -203,17 +203,15 @@ fetch("https://opensheet.elk.sh/164Znr317Kgm4lKudK1HZ7-JbPg8LW8AOCEjOEZ90Xk0/The
   });
 
 
-// ✅ LIVE MASTERS LEADERBOARD (REAL AUGUSTA DATA)
-fetch("https://www.masters.com/en_US/scores/feeds/2026/scores.json")
+fetch("https://api.allorigins.win/raw?url=https://statdata.pgatour.com/r/033/leaderboard-v2mini.json")
   .then(res => res.json())
   .then(data => {
 
     const table = document.getElementById("liveMastersTable");
     table.innerHTML = "";
 
-    const players = data.players.slice(0, 15);
+    const players = data.leaderboard.players.slice(0, 15);
 
-    // Header
     const headerRow = document.createElement("tr");
     ["Pos", "Player", "Score", "Thru"].forEach(h => {
       const th = document.createElement("th");
@@ -225,9 +223,9 @@ fetch("https://www.masters.com/en_US/scores/feeds/2026/scores.json")
     players.forEach(p => {
       const tr = document.createElement("tr");
 
-      const name = `${p.first_name} ${p.last_name}`;
+      const name = p.player_bio.first_name + " " + p.player_bio.last_name;
       const score = p.total;
-      const pos = p.pos;
+      const pos = p.current_position;
       const thru = p.thru;
 
       const tdPos = document.createElement("td");
@@ -242,7 +240,6 @@ fetch("https://www.masters.com/en_US/scores/feeds/2026/scores.json")
       const tdThru = document.createElement("td");
       tdThru.textContent = thru;
 
-      // color scores
       if (score.includes("-")) tdScore.classList.add("score-under");
       else if (score.includes("+")) tdScore.classList.add("score-over");
       else if (score === "E") tdScore.classList.add("score-even");
@@ -256,7 +253,7 @@ fetch("https://www.masters.com/en_US/scores/feeds/2026/scores.json")
     });
 
   })
-  .catch(err => console.error("Masters data error:", err));
+  .catch(err => console.error("PGA data error:", err));
 
 // 🔄 AUTO REFRESH EVERY 30 SECONDS
 setInterval(() => location.reload(), 30000);
