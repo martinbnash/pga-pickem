@@ -159,7 +159,44 @@ fetch("https://opensheet.elk.sh/164Znr317Kgm4lKudK1HZ7-JbPg8LW8AOCEjOEZ90Xk0/The
 // Fetch Picks
 fetch("https://opensheet.elk.sh/164Znr317Kgm4lKudK1HZ7-JbPg8LW8AOCEjOEZ90Xk0/TheMasters")
   .then(res => res.json())
-  .then(data => renderTable("mastersTable", data));
+  .then(data => {
+
+    const container = document.getElementById("mastersBoard");
+    container.innerHTML = "";
+
+    // Limit rows + columns
+    const rows = data.slice(0, 16);
+    const headers = Object.keys(rows[0]).slice(0, 8);
+
+    // Header row
+    const headerDiv = document.createElement("div");
+    headerDiv.className = "pick-row";
+
+    headers.forEach(h => {
+      const cell = document.createElement("div");
+      cell.className = "pick-cell pick-header";
+      cell.textContent = h;
+      headerDiv.appendChild(cell);
+    });
+
+    container.appendChild(headerDiv);
+
+    // Data rows
+    rows.forEach(row => {
+      const rowDiv = document.createElement("div");
+      rowDiv.className = "pick-row";
+
+      headers.forEach(h => {
+        const cell = document.createElement("div");
+        cell.className = "pick-cell";
+        cell.textContent = row[h] || "-";
+        rowDiv.appendChild(cell);
+      });
+
+      container.appendChild(rowDiv);
+    });
+
+  });
 
 </script>
 
