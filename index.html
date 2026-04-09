@@ -82,14 +82,15 @@
   <table id="mastersTable"></table>
 </div>
 
-  <!-- Masters Leaderboard -->
-  <div class="section">
+<!-- Live Masters Leaderboard -->
+<div class="section">
   <h2>🏆 Live Masters Leaderboard</h2>
   <table id="liveMastersTable"></table>
 </div>
+
 <script>
 
-// ✅ LEADERBOARD (A1:B8 EXACT, NO HEADER, NO SORT)
+// ✅ LEADERBOARD (SORTED LOW → HIGH)
 fetch("https://opensheet.elk.sh/164Znr317Kgm4lKudK1HZ7-JbPg8LW8AOCEjOEZ90Xk0/TheMastersLeaderboard")
   .then(res => res.json())
   .then(data => {
@@ -98,37 +99,28 @@ fetch("https://opensheet.elk.sh/164Znr317Kgm4lKudK1HZ7-JbPg8LW8AOCEjOEZ90Xk0/The
     table.innerHTML = "";
 
     const rows = data.slice(0, 8);
-
     const keys = Object.keys(rows[0]);
 
-    // ✅ Convert score to number
     function parseScore(score) {
       if (!score) return 999;
       if (score === "E") return 0;
       return parseInt(score.replace("+", "").trim());
     }
 
-    // 🔥 SORT LOW → HIGH
-    rows.sort((a, b) => {
-      const scoreA = parseScore(a[keys[1]]);
-      const scoreB = parseScore(b[keys[1]]);
-      return scoreA - scoreB;
-    });
+    rows.sort((a, b) => parseScore(a[keys[1]]) - parseScore(b[keys[1]]));
 
-    // BUILD TABLE
-    rows.forEach(row => {
+    rows.forEach((row, i) => {
       const tr = document.createElement("tr");
 
       const name = row[keys[0]] || "";
       const score = row[keys[1]] || "";
 
       const tdName = document.createElement("td");
-      tdName.textContent = name;
+      tdName.textContent = `${i + 1}. ${name}`;
 
       const tdScore = document.createElement("td");
       tdScore.textContent = score;
 
-      // optional color
       if (score.includes("-")) tdScore.classList.add("score-under");
       else if (score.includes("+")) tdScore.classList.add("score-over");
       else if (score === "E") tdScore.classList.add("score-even");
@@ -140,6 +132,7 @@ fetch("https://opensheet.elk.sh/164Znr317Kgm4lKudK1HZ7-JbPg8LW8AOCEjOEZ90Xk0/The
     });
 
   });
+
 
 // ✅ MASTERS PICKS (UNCHANGED)
 fetch("https://opensheet.elk.sh/164Znr317Kgm4lKudK1HZ7-JbPg8LW8AOCEjOEZ90Xk0/TheMasters")
@@ -208,7 +201,9 @@ fetch("https://opensheet.elk.sh/164Znr317Kgm4lKudK1HZ7-JbPg8LW8AOCEjOEZ90Xk0/The
     });
 
   });
-// ✅ LIVE MASTERS LEADERBOARD
+
+
+// ✅ LIVE ESPN-STYLE LEADERBOARD
 fetch("https://site.web.api.espn.com/apis/v2/sports/golf/pga/leaderboard")
   .then(res => res.json())
   .then(data => {
@@ -218,7 +213,6 @@ fetch("https://site.web.api.espn.com/apis/v2/sports/golf/pga/leaderboard")
 
     const players = data.events[0].competitions[0].competitors.slice(0, 15);
 
-    // Header
     const headerRow = document.createElement("tr");
     ["Pos", "Player", "Score", "Today"].forEach(h => {
       const th = document.createElement("th");
@@ -232,11 +226,11 @@ fetch("https://site.web.api.espn.com/apis/v2/sports/golf/pga/leaderboard")
 
       const name = p.athlete.displayName;
       const score = p.score;
-      const position = p.position?.displayName || "";
+      const pos = p.position?.displayName || "";
       const today = p.linescores?.[0]?.value || "";
 
       const tdPos = document.createElement("td");
-      tdPos.textContent = position;
+      tdPos.textContent = pos;
 
       const tdName = document.createElement("td");
       tdName.textContent = name;
@@ -247,7 +241,6 @@ fetch("https://site.web.api.espn.com/apis/v2/sports/golf/pga/leaderboard")
       const tdToday = document.createElement("td");
       tdToday.textContent = today;
 
-      // color scores
       if (score.includes("-")) tdScore.classList.add("score-under");
       else if (score.includes("+")) tdScore.classList.add("score-over");
       else if (score === "E") tdScore.classList.add("score-even");
@@ -261,9 +254,12 @@ fetch("https://site.web.api.espn.com/apis/v2/sports/golf/pga/leaderboard")
     });
 
   })
-  .catch(err => {
-    console.error("Error loading live leaderboard:", err);
-  });
+  .catch(err => console.error("Live leaderboard error:", err));
+
+
+// 🔄 AUTO REFRESH EVERY 30 SECONDS
+setInterval(() => location.reload(), 30000);
+
 </script>
 
 </body>
