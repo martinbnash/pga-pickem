@@ -1,8 +1,11 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <title>2026 PGA Pickem</title>
+
   <style>
+
     body {
       font-family: Arial;
       padding: 20px;
@@ -63,6 +66,7 @@
       font-weight: bold;
       border-top: 3px solid #1976d2;
     }
+
   </style>
 </head>
 
@@ -70,139 +74,358 @@
 
 <h1>🏌️ 2026 PGA Pickem</h1>
 
-<!-- Leaderboard -->
+<!-- PGA CHAMPIONSHIP STANDINGS -->
 <div class="section">
-  <h2>Leaderboard</h2>
-  <table id="leaderboardTable" class="leaderboard"></table>
+  <h2>PGA Championship Standings</h2>
+  <table id="pgaLeaderboardTable" class="leaderboard"></table>
 </div>
 
-<!-- Masters Picks -->
+<!-- PGA CHAMPIONSHIP PICKS -->
 <div class="section">
-  <h2>The Masters Picks</h2>
-  <table id="mastersTable"></table>
+  <h2>PGA Championship Picks</h2>
+  <table id="pgaTable"></table>
 </div>
 
+<!-- OVERALL STANDINGS -->
+<div class="section">
+  <h2>Overall Standings</h2>
+  <table id="overallTable" class="leaderboard"></table>
+</div>
 
+<!-- MASTERS STANDINGS -->
+<div class="section">
+  <h2>Masters Standings</h2>
+  <table id="mastersLeaderboardTable" class="leaderboard"></table>
+</div>
 
 <script>
 
-// ✅ LEADERBOARD (SORTED LOW → HIGH)
-fetch("https://opensheet.elk.sh/164Znr317Kgm4lKudK1HZ7-JbPg8LW8AOCEjOEZ90Xk0/TheMastersLeaderboard")
-  .then(res => res.json())
-  .then(data => {
+// ==============================
+// SCORE HELPERS
+// ==============================
 
-    const table = document.getElementById("leaderboardTable");
-    table.innerHTML = "";
+function parseScore(score) {
 
-    const rows = data.slice(0, 8);
-    const keys = Object.keys(rows[0]);
+  if (!score || score === "") return 999;
 
-    function parseScore(score) {
-      if (!score) return 999;
-      if (score === "E") return 0;
-      return parseInt(score.replace("+", "").trim());
+  if (score === "E") return 0;
+
+  return parseInt(score.replace("+", "").trim());
+
+}
+
+function normalizeScore(score) {
+
+  if (!score || score === "") return 0;
+
+  if (score === "E") return 0;
+
+  return parseInt(score.replace("+", "").trim()) || 0;
+
+}
+
+
+// ==============================
+// PGA CHAMPIONSHIP STANDINGS
+// ==============================
+
+fetch("https://opensheet.elk.sh/1utaYKVonOSXZTsx6I1gbj_wSmUAPDUZZLy9XGRZ0aAc/PGALeaderboard")
+
+.then(res => res.json())
+
+.then(data => {
+
+  const table = document.getElementById("pgaLeaderboardTable");
+
+  table.innerHTML = "";
+
+  const rows = data.slice(0, 8);
+
+  const keys = Object.keys(rows[0]);
+
+  rows.sort((a, b) => parseScore(a[keys[1]]) - parseScore(b[keys[1]]));
+
+  rows.forEach((row, i) => {
+
+    const tr = document.createElement("tr");
+
+    const name = row[keys[0]] || "";
+
+    const score = row[keys[1]] || "";
+
+    const tdName = document.createElement("td");
+
+    tdName.textContent = `${i + 1}. ${name}`;
+
+    const tdScore = document.createElement("td");
+
+    tdScore.textContent = score;
+
+    if (score.includes("-")) tdScore.classList.add("score-under");
+    else if (score.includes("+")) tdScore.classList.add("score-over");
+    else if (score === "E") tdScore.classList.add("score-even");
+
+    tr.appendChild(tdName);
+
+    tr.appendChild(tdScore);
+
+    table.appendChild(tr);
+
+  });
+
+});
+
+
+// ==============================
+// PGA CHAMPIONSHIP PICKS
+// ==============================
+
+fetch("https://opensheet.elk.sh/1utaYKVonOSXZTsx6I1gbj_wSmUAPDUZZLy9XGRZ0aAc/PGAChampionship")
+
+.then(res => res.json())
+
+.then(data => {
+
+  const table = document.getElementById("pgaTable");
+
+  table.innerHTML = "";
+
+  const rows = data.slice(0, 16);
+
+  const headers = Object.keys(rows[0]).slice(0, 8);
+
+  const picks = rows.slice(0, 8);
+
+  const scores = rows.slice(8, 16);
+
+  const headerRow = document.createElement("tr");
+
+  headers.forEach(h => {
+
+    const th = document.createElement("th");
+
+    th.textContent = h;
+
+    headerRow.appendChild(th);
+
+  });
+
+  table.appendChild(headerRow);
+
+  picks.forEach((pickRow, i) => {
+
+    const scoreRow = scores[i] || {};
+
+    const tr = document.createElement("tr");
+
+    const isLastRow = i === picks.length - 1;
+
+    if (isLastRow) {
+
+      tr.classList.add("highlight-bottom");
+
     }
 
-    rows.sort((a, b) => parseScore(a[keys[1]]) - parseScore(b[keys[1]]));
-
-    rows.forEach((row, i) => {
-      const tr = document.createElement("tr");
-
-      const name = row[keys[0]] || "";
-      const score = row[keys[1]] || "";
-
-      const tdName = document.createElement("td");
-      tdName.textContent = `${i + 1}. ${name}`;
-
-      const tdScore = document.createElement("td");
-      tdScore.textContent = score;
-
-      if (score.includes("-")) tdScore.classList.add("score-under");
-      else if (score.includes("+")) tdScore.classList.add("score-over");
-      else if (score === "E") tdScore.classList.add("score-even");
-
-      tr.appendChild(tdName);
-      tr.appendChild(tdScore);
-
-      table.appendChild(tr);
-    });
-
-  });
-
-
-// ✅ MASTERS PICKS (UNCHANGED)
-fetch("https://opensheet.elk.sh/164Znr317Kgm4lKudK1HZ7-JbPg8LW8AOCEjOEZ90Xk0/TheMasters")
-  .then(res => res.json())
-  .then(data => {
-
-    const table = document.getElementById("mastersTable");
-    table.innerHTML = "";
-
-    const rows = data.slice(0, 16);
-    const headers = Object.keys(rows[0]).slice(0, 8);
-
-    const picks = rows.slice(0, 8);
-    const scores = rows.slice(8, 16);
-
-    const headerRow = document.createElement("tr");
     headers.forEach(h => {
-      const th = document.createElement("th");
-      th.textContent = h;
-      headerRow.appendChild(th);
-    });
-    table.appendChild(headerRow);
 
-    picks.forEach((pickRow, i) => {
-      const scoreRow = scores[i] || {};
-      const tr = document.createElement("tr");
+      const td = document.createElement("td");
 
-      const isLastRow = i === picks.length - 1;
+      const player = pickRow[h] || "";
+
+      const score = scoreRow[h] || "";
 
       if (isLastRow) {
-        tr.classList.add("highlight-bottom");
-      }
 
-      headers.forEach(h => {
-        const td = document.createElement("td");
+        td.textContent = player;
 
-        const player = pickRow[h] || "";
-        const score = scoreRow[h] || "";
+      } else {
 
-        if (isLastRow) {
+        if (score) {
+
+          const span = document.createElement("span");
+
+          let scoreClass = "score-even";
+
+          if (score.includes("-")) scoreClass = "score-under";
+          else if (score.includes("+")) scoreClass = "score-over";
+          else if (score === "E" || score === "0") scoreClass = "score-even";
+
+          span.className = scoreClass;
+
+          span.textContent = ` (${score})`;
+
           td.textContent = player;
+
+          td.appendChild(span);
+
         } else {
-          if (score) {
-            const span = document.createElement("span");
 
-            let scoreClass = "score-even";
+          td.textContent = player;
 
-            if (score.includes("-")) scoreClass = "score-under";
-            else if (score.includes("+")) scoreClass = "score-over";
-            else if (score === "E" || score === "0") scoreClass = "score-even";
-
-            span.className = scoreClass;
-            span.textContent = ` (${score})`;
-
-            td.textContent = player;
-            td.appendChild(span);
-          } else {
-            td.textContent = player;
-          }
         }
 
-        tr.appendChild(td);
-      });
+      }
 
-      table.appendChild(tr);
+      tr.appendChild(td);
+
     });
+
+    table.appendChild(tr);
 
   });
 
+});
 
-// 🔄 AUTO REFRESH EVERY 30 SECONDS
+
+// ==============================
+// OVERALL STANDINGS
+// ==============================
+
+Promise.all([
+
+  fetch("https://opensheet.elk.sh/164Znr317Kgm4lKudK1HZ7-JbPg8LW8AOCEjOEZ90Xk0/TheMastersLeaderboard")
+    .then(res => res.json()),
+
+  fetch("https://opensheet.elk.sh/1utaYKVonOSXZTsx6I1gbj_wSmUAPDUZZLy9XGRZ0aAc/PGALeaderboard")
+    .then(res => res.json())
+
+])
+
+.then(([mastersData, pgaData]) => {
+
+  const overallScores = {};
+
+  // Masters scores
+  mastersData.forEach(row => {
+
+    const keys = Object.keys(row);
+
+    const name = row[keys[0]];
+
+    const score = normalizeScore(row[keys[1]]);
+
+    overallScores[name] = score;
+
+  });
+
+  // PGA scores
+  pgaData.forEach(row => {
+
+    const keys = Object.keys(row);
+
+    const name = row[keys[0]];
+
+    const score = normalizeScore(row[keys[1]]);
+
+    if (overallScores[name] !== undefined) {
+
+      overallScores[name] += score;
+
+    } else {
+
+      overallScores[name] = score;
+
+    }
+
+  });
+
+  // Sort combined standings
+  const sorted = Object.entries(overallScores)
+
+    .sort((a, b) => a[1] - b[1]);
+
+  const table = document.getElementById("overallTable");
+
+  table.innerHTML = "";
+
+  sorted.forEach((player, i) => {
+
+    const tr = document.createElement("tr");
+
+    const tdName = document.createElement("td");
+
+    tdName.textContent = `${i + 1}. ${player[0]}`;
+
+    const tdScore = document.createElement("td");
+
+    const score = player[1];
+
+    tdScore.textContent = score > 0 ? `+${score}` : score;
+
+    if (score < 0) tdScore.classList.add("score-under");
+    else if (score > 0) tdScore.classList.add("score-over");
+    else tdScore.classList.add("score-even");
+
+    tr.appendChild(tdName);
+
+    tr.appendChild(tdScore);
+
+    table.appendChild(tr);
+
+  });
+
+});
+
+
+// ==============================
+// MASTERS STANDINGS
+// ==============================
+
+fetch("https://opensheet.elk.sh/164Znr317Kgm4lKudK1HZ7-JbPg8LW8AOCEjOEZ90Xk0/TheMastersLeaderboard")
+
+.then(res => res.json())
+
+.then(data => {
+
+  const table = document.getElementById("mastersLeaderboardTable");
+
+  table.innerHTML = "";
+
+  const rows = data.slice(0, 8);
+
+  const keys = Object.keys(rows[0]);
+
+  rows.sort((a, b) => parseScore(a[keys[1]]) - parseScore(b[keys[1]]));
+
+  rows.forEach((row, i) => {
+
+    const tr = document.createElement("tr");
+
+    const name = row[keys[0]] || "";
+
+    const score = row[keys[1]] || "";
+
+    const tdName = document.createElement("td");
+
+    tdName.textContent = `${i + 1}. ${name}`;
+
+    const tdScore = document.createElement("td");
+
+    tdScore.textContent = score;
+
+    if (score.includes("-")) tdScore.classList.add("score-under");
+    else if (score.includes("+")) tdScore.classList.add("score-over");
+    else if (score === "E") tdScore.classList.add("score-even");
+
+    tr.appendChild(tdName);
+
+    tr.appendChild(tdScore);
+
+    table.appendChild(tr);
+
+  });
+
+});
+
+
+// ==============================
+// AUTO REFRESH
+// ==============================
+
 setInterval(() => location.reload(), 30000);
 
 </script>
 
 </body>
+
 </html>
