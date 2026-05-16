@@ -45,6 +45,7 @@ color:white;
 background:#1565c0;
 }
 
+/* Golf scoring colors */
 .score-under{
 color:green;
 font-weight:bold;
@@ -99,6 +100,10 @@ const mastersSheet="164Znr317Kgm4lKudK1HZ7-JbPg8LW8AOCEjOEZ90Xk0";
 
 const pgaSheet="1utaYKVonOSXZTsx6I1gbj_wSmUAPDUZZLy9XGRZ0aAc";
 
+/* =========================
+   SCORE HELPERS
+========================= */
+
 function parseScore(score){
 
   if(score === undefined || score === null || score === "")
@@ -109,7 +114,9 @@ function parseScore(score){
   if(score === "E")
     return 0;
 
-  return parseInt(score.replace("+","")) || 999;
+  const parsed = parseInt(score.replace("+",""));
+
+  return isNaN(parsed) ? 999 : parsed;
 
 }
 
@@ -123,22 +130,25 @@ function normalizeScore(score){
   if(score === "E")
     return 0;
 
-  return parseInt(score.replace("+","")) || 0;
+  const parsed = parseInt(score.replace("+",""));
+
+  return isNaN(parsed) ? 0 : parsed;
 
 }
 
 function applyScoreClass(td,score){
 
- score = score.toString();
+ score = score.toString().trim();
 
- if(score.includes("-"))
+ if(score.includes("-")){
     td.classList.add("score-under");
-
- else if(score.includes("+"))
+ }
+ else if(score.includes("+")){
     td.classList.add("score-over");
-
- else
+ }
+ else if(score === "E" || score === "0"){
     td.classList.add("score-even");
+ }
 
 }
 
@@ -153,6 +163,10 @@ function formatScore(score){
  return score;
 
 }
+
+/* =========================
+   LEADERBOARD DRAW
+========================= */
 
 function drawLeaderboard(data,tableID){
 
@@ -183,7 +197,7 @@ header.append(th1,th2);
 
 table.appendChild(header);
 
-// Sort
+// Sort lowest golf score first
 data.sort(
 (a,b)=>
 parseScore(a[keys[1]])
@@ -218,6 +232,10 @@ table.appendChild(tr);
 });
 
 }
+
+/* =========================
+   PICKS TABLE
+========================= */
 
 function drawPicks(data){
 
@@ -292,7 +310,10 @@ table.appendChild(row);
 
 }
 
-// PGA standings
+/* =========================
+   PGA STANDINGS
+========================= */
+
 fetch(`https://opensheet.elk.sh/${pgaSheet}/PGAChampLeaderboard`)
 .then(r=>r.json())
 .then(d=>drawLeaderboard(
@@ -300,12 +321,18 @@ d,
 "pgaLeaderboardTable"
 ));
 
-// PGA picks
+/* =========================
+   PGA PICKS
+========================= */
+
 fetch(`https://opensheet.elk.sh/${pgaSheet}/PGAChamp`)
 .then(r=>r.json())
 .then(d=>drawPicks(d));
 
-// Masters standings
+/* =========================
+   MASTERS STANDINGS
+========================= */
+
 fetch(`https://opensheet.elk.sh/${mastersSheet}/TheMastersLeaderboard`)
 .then(r=>r.json())
 .then(d=>drawLeaderboard(
@@ -313,7 +340,9 @@ d,
 "mastersLeaderboardTable"
 ));
 
-// OVERALL STANDINGS
+/* =========================
+   OVERALL STANDINGS
+========================= */
 
 Promise.all([
 
@@ -329,7 +358,7 @@ fetch(`https://opensheet.elk.sh/${pgaSheet}/PGAChampLeaderboard`)
 
 const total={};
 
-// Masters
+// Masters scores
 masters.forEach(r=>{
 
 const k=Object.keys(r);
@@ -343,7 +372,7 @@ total[player]=score;
 
 });
 
-// PGA
+// PGA scores
 pga.forEach(r=>{
 
 const k=Object.keys(r);
@@ -353,18 +382,15 @@ const player=r[k[0]];
 const score=
 normalizeScore(r[k[1]]);
 
-// Fix for 0 scores
 if(total[player] === undefined){
-
 total[player]=0;
-
 }
 
 total[player]+=score;
 
 });
 
-// Sort ascending
+// Sort golf scores lowest to highest
 const sorted=
 Object.entries(total)
 .sort((a,b)=>a[1]-b[1]);
@@ -428,7 +454,10 @@ console.error(err);
 
 });
 
-// Auto refresh every 30 seconds
+/* =========================
+   AUTO REFRESH
+========================= */
+
 setInterval(
 ()=>location.reload(),
 30000
