@@ -4,6 +4,7 @@
 <title>2026 PGA Pickem</title>
 
 <style>
+
 body{
 font-family:Arial;
 padding:20px;
@@ -64,6 +65,7 @@ background:#bbdefb;
 font-weight:bold;
 border-top:3px solid #1976d2;
 }
+
 </style>
 </head>
 
@@ -94,21 +96,40 @@ border-top:3px solid #1976d2;
 <script>
 
 const mastersSheet="164Znr317Kgm4lKudK1HZ7-JbPg8LW8AOCEjOEZ90Xk0";
+
 const pgaSheet="1utaYKVonOSXZTsx6I1gbj_wSmUAPDUZZLy9XGRZ0aAc";
 
 function parseScore(score){
-  if(!score) return 999;
-  if(score==="E") return 0;
-  return parseInt(score.replace("+",""))||999;
+
+  if(score === undefined || score === null || score === "")
+    return 999;
+
+  score = score.toString().trim();
+
+  if(score === "E")
+    return 0;
+
+  return parseInt(score.replace("+","")) || 999;
+
 }
 
 function normalizeScore(score){
-  if(!score) return 0;
-  if(score==="E") return 0;
-  return parseInt(score.replace("+",""))||0;
+
+  if(score === undefined || score === null || score === "")
+    return 0;
+
+  score = score.toString().trim();
+
+  if(score === "E")
+    return 0;
+
+  return parseInt(score.replace("+","")) || 0;
+
 }
 
 function applyScoreClass(td,score){
+
+ score = score.toString();
 
  if(score.includes("-"))
     td.classList.add("score-under");
@@ -121,6 +142,18 @@ function applyScoreClass(td,score){
 
 }
 
+function formatScore(score){
+
+ if(score > 0)
+    return `+${score}`;
+
+ if(score === 0)
+    return "E";
+
+ return score;
+
+}
+
 function drawLeaderboard(data,tableID){
 
 const table=document.getElementById(tableID);
@@ -128,12 +161,29 @@ const table=document.getElementById(tableID);
 table.innerHTML="";
 
 if(!data.length){
+
  table.innerHTML="<tr><td>No data</td></tr>";
+
  return;
+
 }
 
 const keys=Object.keys(data[0]);
 
+// Header
+const header=document.createElement("tr");
+
+const th1=document.createElement("th");
+th1.textContent="Player";
+
+const th2=document.createElement("th");
+th2.textContent="Score";
+
+header.append(th1,th2);
+
+table.appendChild(header);
+
+// Sort
 data.sort(
 (a,b)=>
 parseScore(a[keys[1]])
@@ -141,13 +191,14 @@ parseScore(a[keys[1]])
 parseScore(b[keys[1]])
 );
 
+// Rows
 data.slice(0,8).forEach((row,i)=>{
 
 const tr=document.createElement("tr");
 
-const name=row[keys[0]]||"";
+const name=row[keys[0]] || "";
 
-const score=row[keys[1]]||"";
+const score=row[keys[1]] || "";
 
 const td1=document.createElement("td");
 
@@ -168,7 +219,6 @@ table.appendChild(tr);
 
 }
 
-
 function drawPicks(data){
 
 const table=document.getElementById("pgaTable");
@@ -176,8 +226,11 @@ const table=document.getElementById("pgaTable");
 table.innerHTML="";
 
 if(!data.length){
+
 table.innerHTML="<tr><td>No data</td></tr>";
+
 return;
+
 }
 
 const headers=
@@ -187,6 +240,7 @@ const picks=data.slice(0,8);
 
 const scores=data.slice(8,16);
 
+// Header Row
 const hr=document.createElement("tr");
 
 headers.forEach(h=>{
@@ -201,27 +255,26 @@ hr.appendChild(th);
 
 table.appendChild(hr);
 
+// Data Rows
 picks.forEach((pickRow,i)=>{
 
 const row=document.createElement("tr");
 
-const scoreRow=scores[i]||{};
+const scoreRow=scores[i] || {};
 
 headers.forEach(h=>{
 
 const td=document.createElement("td");
 
-const player=
-pickRow[h]||"";
+const player=pickRow[h] || "";
 
-const score=
-scoreRow[h]||"";
+const score=scoreRow[h] || "";
 
 if(score){
 
 td.innerHTML=
-`${player}
-<span>(${score})</span>`;
+`${player}<br>
+<span style="font-weight:bold;">(${score})</span>`;
 
 }else{
 
@@ -239,7 +292,6 @@ table.appendChild(row);
 
 }
 
-
 // PGA standings
 fetch(`https://opensheet.elk.sh/${pgaSheet}/PGAChampLeaderboard`)
 .then(r=>r.json())
@@ -248,12 +300,10 @@ d,
 "pgaLeaderboardTable"
 ));
 
-
 // PGA picks
 fetch(`https://opensheet.elk.sh/${pgaSheet}/PGAChamp`)
 .then(r=>r.json())
 .then(d=>drawPicks(d));
-
 
 // Masters standings
 fetch(`https://opensheet.elk.sh/${mastersSheet}/TheMastersLeaderboard`)
@@ -263,9 +313,7 @@ d,
 "mastersLeaderboardTable"
 ));
 
-
-
-// OVERALL
+// OVERALL STANDINGS
 
 Promise.all([
 
@@ -281,47 +329,66 @@ fetch(`https://opensheet.elk.sh/${pgaSheet}/PGAChampLeaderboard`)
 
 const total={};
 
+// Masters
 masters.forEach(r=>{
 
-const k=
-Object.keys(r);
+const k=Object.keys(r);
 
-total[r[k[0]]]=
-normalizeScore(
-r[k[1]]
-);
-
-});
-
-pga.forEach(r=>{
-
-const k=
-Object.keys(r);
-
-const player=
-r[k[0]];
+const player=r[k[0]];
 
 const score=
-normalizeScore(
-r[k[1]]
-);
+normalizeScore(r[k[1]]);
 
-total[player]=
-(total[player]||0)
-+
-score;
+total[player]=score;
 
 });
 
+// PGA
+pga.forEach(r=>{
+
+const k=Object.keys(r);
+
+const player=r[k[0]];
+
+const score=
+normalizeScore(r[k[1]]);
+
+// Fix for 0 scores
+if(total[player] === undefined){
+
+total[player]=0;
+
+}
+
+total[player]+=score;
+
+});
+
+// Sort ascending
 const sorted=
 Object.entries(total)
 .sort((a,b)=>a[1]-b[1]);
 
 const table=
-document.getElementById(
-"overallTable"
-);
+document.getElementById("overallTable");
 
+// Clear old data
+table.innerHTML="";
+
+// Header
+const header=document.createElement("tr");
+
+const th1=document.createElement("th");
+th1.textContent="Player";
+
+const th2=document.createElement("th");
+th2.textContent="Total";
+
+header.append(th1,th2);
+
+table.appendChild(header);
+
+// Rows
 sorted.forEach((p,i)=>{
 
 const tr=
@@ -337,9 +404,7 @@ const td2=
 document.createElement("td");
 
 td2.textContent=
-p[1]>0
-?`+${p[1]}`
-:p[1];
+formatScore(p[1]);
 
 applyScoreClass(
 td2,
@@ -355,8 +420,15 @@ table.appendChild(tr);
 
 });
 
+})
+
+.catch(err=>{
+
+console.error(err);
+
 });
 
+// Auto refresh every 30 seconds
 setInterval(
 ()=>location.reload(),
 30000
