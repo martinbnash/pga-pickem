@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>2026 PGA Pickem</title>
+<title>2026 Major Championship Pickem</title>
 
 <style>
 
@@ -45,7 +45,6 @@ color:white;
 background:#1565c0;
 }
 
-/* Golf scoring colors */
 .score-under{
 color:green;
 font-weight:bold;
@@ -61,27 +60,21 @@ color:#555;
 font-weight:bold;
 }
 
-.highlight-bottom{
-background:#bbdefb;
-font-weight:bold;
-border-top:3px solid #1976d2;
-}
-
 </style>
 </head>
 
 <body>
 
-<h1>🏌️ 2026 PGA Pickem</h1>
+<h1>🏌️ 2026 Major Championship Pickem</h1>
 
 <div class="section">
-<h2>PGA Championship Standings</h2>
-<table id="pgaLeaderboardTable" class="leaderboard"></table>
+<h2>US Open Standings</h2>
+<table id="usOpenLeaderboardTable" class="leaderboard"></table>
 </div>
 
 <div class="section">
-<h2>PGA Championship Picks</h2>
-<table id="pgaTable"></table>
+<h2>US Open Picks</h2>
+<table id="usOpenTable"></table>
 </div>
 
 <div class="section">
@@ -94,7 +87,16 @@ border-top:3px solid #1976d2;
 <table id="mastersLeaderboardTable" class="leaderboard"></table>
 </div>
 
+<div class="section">
+<h2>PGA Championship Standings</h2>
+<table id="pgaLeaderboardTable" class="leaderboard"></table>
+</div>
+
 <script>
+
+const usOpenSheet="1C7NwDB1K9VBJFgliSL5ngenBqA4LkS2Xe1HDKn0dSmw";
+
+const overallSheet="1nWKUOXSasstktnSt8hsDBNhDlG4ie8oBT2HsDzO52sY";
 
 const mastersSheet="164Znr317Kgm4lKudK1HZ7-JbPg8LW8AOCEjOEZ90Xk0";
 
@@ -106,61 +108,36 @@ const pgaSheet="1utaYKVonOSXZTsx6I1gbj_wSmUAPDUZZLy9XGRZ0aAc";
 
 function parseScore(score){
 
-  if(score === undefined || score === null || score === "")
-    return 999;
+if(score===undefined || score===null || score==="")
+return 999;
 
-  score = score.toString().trim();
+score=score.toString().trim();
 
-  if(score === "E")
-    return 0;
+if(score==="E")
+return 0;
 
-  const parsed = parseInt(score.replace("+",""));
+const parsed=parseInt(score.replace("+",""));
 
-  return isNaN(parsed) ? 999 : parsed;
-
-}
-
-function normalizeScore(score){
-
-  if(score === undefined || score === null || score === "")
-    return 0;
-
-  score = score.toString().trim();
-
-  if(score === "E")
-    return 0;
-
-  const parsed = parseInt(score.replace("+",""));
-
-  return isNaN(parsed) ? 0 : parsed;
+return isNaN(parsed) ? 999 : parsed;
 
 }
 
 function applyScoreClass(td,score){
 
- score = score.toString().trim();
+if(score===undefined || score===null)
+return;
 
- if(score.includes("-")){
-    td.classList.add("score-under");
- }
- else if(score.includes("+")){
-    td.classList.add("score-over");
- }
- else if(score === "E" || score === "0"){
-    td.classList.add("score-even");
- }
+score=score.toString().trim();
 
+if(score.includes("-")){
+td.classList.add("score-under");
 }
-
-function formatScore(score){
-
- if(score > 0)
-    return `+${score}`;
-
- if(score === 0)
-    return "E";
-
- return score;
+else if(score.includes("+")){
+td.classList.add("score-over");
+}
+else if(score==="E" || score==="0"){
+td.classList.add("score-even");
+}
 
 }
 
@@ -176,28 +153,21 @@ table.innerHTML="";
 
 if(!data.length){
 
- table.innerHTML="<tr><td>No data</td></tr>";
+table.innerHTML="<tr><td>No data</td></tr>";
 
- return;
+return;
 
 }
 
 const keys=Object.keys(data[0]);
 
-// Header
 const header=document.createElement("tr");
 
-const th1=document.createElement("th");
-th1.textContent="Player";
-
-const th2=document.createElement("th");
-th2.textContent="Score";
-
-header.append(th1,th2);
+header.innerHTML=
+"<th>Player</th><th>Score</th>";
 
 table.appendChild(header);
 
-// Sort lowest golf score first
 data.sort(
 (a,b)=>
 parseScore(a[keys[1]])
@@ -205,22 +175,18 @@ parseScore(a[keys[1]])
 parseScore(b[keys[1]])
 );
 
-// Rows
-data.slice(0,8).forEach((row,i)=>{
+data.forEach((row,i)=>{
 
 const tr=document.createElement("tr");
 
-const name=row[keys[0]] || "";
+const player=row[keys[0]] || "";
 
 const score=row[keys[1]] || "";
 
 const td1=document.createElement("td");
-
-td1.textContent=
-`${i+1}. ${name}`;
+td1.textContent=`${i+1}. ${player}`;
 
 const td2=document.createElement("td");
-
 td2.textContent=score;
 
 applyScoreClass(td2,score);
@@ -239,7 +205,7 @@ table.appendChild(tr);
 
 function drawPicks(data){
 
-const table=document.getElementById("pgaTable");
+const table=document.getElementById("usOpenTable");
 
 table.innerHTML="";
 
@@ -258,7 +224,6 @@ const picks=data.slice(0,8);
 
 const scores=data.slice(8,16);
 
-// Header Row
 const hr=document.createElement("tr");
 
 headers.forEach(h=>{
@@ -273,7 +238,6 @@ hr.appendChild(th);
 
 table.appendChild(hr);
 
-// Data Rows
 picks.forEach((pickRow,i)=>{
 
 const row=document.createElement("tr");
@@ -311,23 +275,82 @@ table.appendChild(row);
 }
 
 /* =========================
-   PGA STANDINGS
+   OVERALL STANDINGS
 ========================= */
 
-fetch(`https://opensheet.elk.sh/${pgaSheet}/PGAChampLeaderboard`)
+function drawOverall(data){
+
+const table=
+document.getElementById("overallTable");
+
+table.innerHTML="";
+
+if(!data.length){
+
+table.innerHTML="<tr><td>No data</td></tr>";
+
+return;
+
+}
+
+const keys=Object.keys(data[0]);
+
+const header=document.createElement("tr");
+
+header.innerHTML=
+"<th>Player</th><th>Total</th>";
+
+table.appendChild(header);
+
+data.forEach((row,i)=>{
+
+const tr=document.createElement("tr");
+
+const player=row[keys[0]] || "";
+const total=row[keys[1]] || "";
+
+const td1=document.createElement("td");
+td1.textContent=`${i+1}. ${player}`;
+
+const td2=document.createElement("td");
+td2.textContent=total;
+
+applyScoreClass(td2,total);
+
+tr.append(td1,td2);
+
+table.appendChild(tr);
+
+});
+
+}
+
+/* =========================
+   US OPEN STANDINGS
+========================= */
+
+fetch(`https://opensheet.elk.sh/${usOpenSheet}/USOpenLeaderboard`)
 .then(r=>r.json())
 .then(d=>drawLeaderboard(
 d,
-"pgaLeaderboardTable"
+"usOpenLeaderboardTable"
 ));
 
 /* =========================
-   PGA PICKS
+   US OPEN PICKS
 ========================= */
 
-fetch(`https://opensheet.elk.sh/${pgaSheet}/PGAChamp`)
+fetch(`https://opensheet.elk.sh/${usOpenSheet}/USOpen`)
 .then(r=>r.json())
 .then(d=>drawPicks(d));
+
+/* =========================
+   OVERALL STANDINGS
+========================= */
+
+fetch(`https://opensheet.elk.sh/${overallSheet}/Scores`)
+.then(r=>r.json())
+.then(d=>drawOverall(d));
 
 /* =========================
    MASTERS STANDINGS
@@ -341,118 +364,15 @@ d,
 ));
 
 /* =========================
-   OVERALL STANDINGS
+   PGA STANDINGS
 ========================= */
-
-Promise.all([
-
-fetch(`https://opensheet.elk.sh/${mastersSheet}/TheMastersLeaderboard`)
-.then(r=>r.json()),
 
 fetch(`https://opensheet.elk.sh/${pgaSheet}/PGAChampLeaderboard`)
 .then(r=>r.json())
-
-])
-
-.then(([masters,pga])=>{
-
-const total={};
-
-// Masters scores
-masters.forEach(r=>{
-
-const k=Object.keys(r);
-
-const player=r[k[0]];
-
-const score=
-normalizeScore(r[k[1]]);
-
-total[player]=score;
-
-});
-
-// PGA scores
-pga.forEach(r=>{
-
-const k=Object.keys(r);
-
-const player=r[k[0]];
-
-const score=
-normalizeScore(r[k[1]]);
-
-if(total[player] === undefined){
-total[player]=0;
-}
-
-total[player]+=score;
-
-});
-
-// Sort golf scores lowest to highest
-const sorted=
-Object.entries(total)
-.sort((a,b)=>a[1]-b[1]);
-
-const table=
-document.getElementById("overallTable");
-
-// Clear old data
-table.innerHTML="";
-
-// Header
-const header=document.createElement("tr");
-
-const th1=document.createElement("th");
-th1.textContent="Player";
-
-const th2=document.createElement("th");
-th2.textContent="Total";
-
-header.append(th1,th2);
-
-table.appendChild(header);
-
-// Rows
-sorted.forEach((p,i)=>{
-
-const tr=
-document.createElement("tr");
-
-const td1=
-document.createElement("td");
-
-td1.textContent=
-`${i+1}. ${p[0]}`;
-
-const td2=
-document.createElement("td");
-
-td2.textContent=
-formatScore(p[1]);
-
-applyScoreClass(
-td2,
-td2.textContent
-);
-
-tr.append(
-td1,
-td2
-);
-
-table.appendChild(tr);
-
-});
-
-})
-
-.catch(err=>{
-
-console.error(err);
-
-});
+.then(d=>drawLeaderboard(
+d,
+"pgaLeaderboardTable"
+));
 
 /* =========================
    AUTO REFRESH
