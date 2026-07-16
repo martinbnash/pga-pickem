@@ -1,1 +1,399 @@
-<!DOCTYPE html> <html> <head> <title>2026 Major Championship Pickem</title> <style> body{ font-family:Arial; padding:20px; background:#f5f5f5; } h1{ text-align:center; } .section{ margin-top:30px; background:white; padding:20px; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,.1); } table{ width:100%; border-collapse:collapse; margin-top:10px; } th,td{ border:1px solid #ddd; padding:8px; text-align:center; font-size:13px; } th{ background:#2e7d32; color:white; } .leaderboard th{ background:#1565c0; } .score-under{ color:green; font-weight:bold; } .score-over{ color:red; font-weight:bold; } .score-even{ color:#555; font-weight:bold; } </style> </head> <body> <h1>🏌️ 2026 Major Championship Pickem</h1> <div class="section"> <h2>The Open Championship Standings</h2> <table id="openLeaderboardTable" class="leaderboard"></table> </div> <div class="section"> <h2>The Open Championship Picks</h2> <table id="openTable"></table> </div> <div class="section"> <h2>Overall Standings</h2> <table id="overallTable" class="leaderboard"></table> </div> <div class="section"> <h2>US Open Standings</h2> <table id="usOpenLeaderboardTable" class="leaderboard"></table> </div> <div class="section"> <h2>Masters Standings</h2> <table id="mastersLeaderboardTable" class="leaderboard"></table> </div> <div class="section"> <h2>PGA Championship Standings</h2> <table id="pgaLeaderboardTable" class="leaderboard"></table> </div> <script> const usOpenSheet="1C7NwDB1K9VBJFgliSL5ngenBqA4LkS2Xe1HDKn0dSmw"; const overallSheet="1nWKUOXSasstktnSt8hsDBNhDlG4ie8oBT2HsDzO52sY"; const mastersSheet="164Znr317Kgm4lKudK1HZ7-JbPg8LW8AOCEjOEZ90Xk0"; const pgaSheet="1utaYKVonOSXZTsx6I1gbj_wSmUAPDUZZLy9XGRZ0aAc"; const openSheet="1QlXglHOtmLlef9pdQSWmfojMdEefsUyXCP6QWssB6zU"; /* ========================= SCORE HELPERS ========================= */ function parseScore(score){ if(score===undefined || score===null || score==="") return 999; score=score.toString().trim(); if(score==="E") return 0; const parsed=parseInt(score.replace("+","")); return isNaN(parsed) ? 999 : parsed; } function applyScoreClass(td,score){ if(score===undefined || score===null) return; score=score.toString().trim(); if(score.includes("-")){ td.classList.add("score-under"); } else if(score.includes("+")){ td.classList.add("score-over"); } else if(score==="E" || score==="0"){ td.classList.add("score-even"); } } /* ========================= LEADERBOARD DRAW ========================= */ function drawLeaderboard(data,tableID){ const table=document.getElementById(tableID); table.innerHTML=""; if(!data.length){ table.innerHTML="<tr><td>No data</td></tr>"; return; } const keys=Object.keys(data[0]); const header=document.createElement("tr"); header.innerHTML="<th>Player</th><th>Score</th>"; table.appendChild(header); data.sort( (a,b)=> parseScore(a[keys[1]]) - parseScore(b[keys[1]]) ); data.forEach((row,i)=>{ const tr=document.createElement("tr"); const player=row[keys[0]] || ""; const score=row[keys[1]] || ""; const td1=document.createElement("td"); td1.textContent=${i+1}. ${player}; const td2=document.createElement("td"); td2.textContent=score; applyScoreClass(td2,score); tr.append(td1,td2); table.appendChild(tr); }); } /* ========================= PICKS TABLE ========================= */ function drawPicks(data,tableID){ const table=document.getElementById(tableID); table.innerHTML=""; if(!data.length){ table.innerHTML="<tr><td>No data</td></tr>"; return; } const headers=Object.keys(data[0]).slice(0,8); const picks=data.slice(0,8); const scores=data.slice(8,16); const hr=document.createElement("tr"); headers.forEach(h=>{ const th=document.createElement("th"); th.textContent=h; hr.appendChild(th); }); table.appendChild(hr); picks.forEach((pickRow,i)=>{ const row=document.createElement("tr"); const scoreRow=scores[i] || {}; headers.forEach(h=>{ const td=document.createElement("td"); const player=pickRow[h] || ""; const score=scoreRow[h] || ""; if(score){ td.innerHTML=${player}<br> <span style="font-weight:bold;">(${score})</span>; }else{ td.textContent=player; } row.appendChild(td); }); table.appendChild(row); }); } /* ========================= OVERALL STANDINGS ========================= */ function drawOverall(data){ const table=document.getElementById("overallTable"); table.innerHTML=""; if(!data.length){ table.innerHTML="<tr><td>No data</td></tr>"; return; } const keys=Object.keys(data[0]); const header=document.createElement("tr"); header.innerHTML="<th>Player</th><th>Total</th>"; table.appendChild(header); data.forEach((row,i)=>{ const tr=document.createElement("tr"); const player=row[keys[0]] || ""; const total=row[keys[1]] || ""; const td1=document.createElement("td"); td1.textContent=${i+1}. ${player}; const td2=document.createElement("td"); td2.textContent=total; applyScoreClass(td2,total); tr.append(td1,td2); table.appendChild(tr); }); } /* ========================= US OPEN STANDINGS ========================= */ fetch(https://opensheet.elk.sh/${usOpenSheet}/USOpenLeaderboard) .then(r=>r.json()) .then(d=>drawLeaderboard(d,"usOpenLeaderboardTable")); /* ========================= US OPEN PICKS ========================= */ fetch(https://opensheet.elk.sh/${usOpenSheet}/USOpen) .then(r=>r.json()) .then(d=>drawPicks(d,"usOpenTable")); /* ========================= OVERALL STANDINGS ========================= */ fetch(https://opensheet.elk.sh/${overallSheet}/Scores) .then(r=>r.json()) .then(d=>drawOverall(d)); /* ========================= MASTERS STANDINGS ========================= */ fetch(https://opensheet.elk.sh/${mastersSheet}/TheMastersLeaderboard) .then(r=>r.json()) .then(d=>drawLeaderboard(d,"mastersLeaderboardTable")); /* ========================= PGA STANDINGS ========================= */ fetch(https://opensheet.elk.sh/${pgaSheet}/PGAChampLeaderboard) .then(r=>r.json()) .then(d=>drawLeaderboard(d,"pgaLeaderboardTable")); /* ========================= THE OPEN STANDINGS ========================= */ fetch(https://opensheet.elk.sh/${openSheet}/TheOpenLeaderboard) .then(r=>r.json()) .then(d=>drawLeaderboard(d,"openLeaderboardTable")); /* ========================= THE OPEN PICKS ========================= */ fetch(https://opensheet.elk.sh/${openSheet}/TheOpenChampionship) .then(r=>r.json()) .then(d=>drawPicks(d,"openTable")); /* ========================= AUTO REFRESH ========================= */ setInterval( ()=>location.reload(), 30000 ); </script> </body> </html>
+<!DOCTYPE html>
+<html>
+<head>
+<title>2026 Major Championship Pickem</title>
+
+<style>
+
+body{
+font-family:Arial;
+padding:20px;
+background:#f5f5f5;
+}
+
+h1{
+text-align:center;
+}
+
+.section{
+margin-top:30px;
+background:white;
+padding:20px;
+border-radius:10px;
+box-shadow:0 2px 8px rgba(0,0,0,.1);
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:10px;
+}
+
+th,td{
+border:1px solid #ddd;
+padding:8px;
+text-align:center;
+font-size:13px;
+}
+
+th{
+background:#2e7d32;
+color:white;
+}
+
+.leaderboard th{
+background:#1565c0;
+}
+
+.score-under{
+color:green;
+font-weight:bold;
+}
+
+.score-over{
+color:red;
+font-weight:bold;
+}
+
+.score-even{
+color:#555;
+font-weight:bold;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>🏌️ 2026 Major Championship Pickem</h1>
+
+<div class="section">
+<h2>The Open Championship Standings</h2>
+<table id="openLeaderboardTable" class="leaderboard"></table>
+</div>
+
+<div class="section">
+<h2>The Open Championship Picks</h2>
+<table id="openTable"></table>
+</div>
+
+<div class="section">
+<h2>Overall Standings</h2>
+<table id="overallTable" class="leaderboard"></table>
+</div>
+   
+<div class="section">
+<h2>US Open Standings</h2>
+<table id="usOpenLeaderboardTable" class="leaderboard"></table>
+</div>
+
+
+<div class="section">
+<h2>Masters Standings</h2>
+<table id="mastersLeaderboardTable" class="leaderboard"></table>
+</div>
+
+<div class="section">
+<h2>PGA Championship Standings</h2>
+<table id="pgaLeaderboardTable" class="leaderboard"></table>
+</div>
+
+<script>
+
+const usOpenSheet="1C7NwDB1K9VBJFgliSL5ngenBqA4LkS2Xe1HDKn0dSmw";
+
+const overallSheet="1nWKUOXSasstktnSt8hsDBNhDlG4ie8oBT2HsDzO52sY";
+
+const mastersSheet="164Znr317Kgm4lKudK1HZ7-JbPg8LW8AOCEjOEZ90Xk0";
+
+const pgaSheet="1utaYKVonOSXZTsx6I1gbj_wSmUAPDUZZLy9XGRZ0aAc";
+
+const openSheet="1QlXglHOtmLlef9pdQSWmfojMdEefsUyXCP6QWssB6zU";
+
+/* =========================
+   SCORE HELPERS
+========================= */
+
+function parseScore(score){
+
+if(score===undefined || score===null || score==="")
+return 999;
+
+score=score.toString().trim();
+
+if(score==="E")
+return 0;
+
+const parsed=parseInt(score.replace("+",""));
+
+return isNaN(parsed) ? 999 : parsed;
+
+}
+
+function applyScoreClass(td,score){
+
+if(score===undefined || score===null)
+return;
+
+score=score.toString().trim();
+
+if(score.includes("-")){
+td.classList.add("score-under");
+}
+else if(score.includes("+")){
+td.classList.add("score-over");
+}
+else if(score==="E" || score==="0"){
+td.classList.add("score-even");
+}
+
+}
+
+/* =========================
+   LEADERBOARD DRAW
+========================= */
+
+function drawLeaderboard(data,tableID){
+
+const table=document.getElementById(tableID);
+
+table.innerHTML="";
+
+if(!data.length){
+
+table.innerHTML="<tr><td>No data</td></tr>";
+
+return;
+
+}
+
+const keys=Object.keys(data[0]);
+
+const header=document.createElement("tr");
+
+header.innerHTML="<th>Player</th><th>Score</th>";
+
+table.appendChild(header);
+
+data.sort(
+(a,b)=>
+parseScore(a[keys[1]])
+-
+parseScore(b[keys[1]])
+);
+
+data.forEach((row,i)=>{
+
+const tr=document.createElement("tr");
+
+const player=row[keys[0]] || "";
+
+const score=row[keys[1]] || "";
+
+const td1=document.createElement("td");
+td1.textContent=`${i+1}. ${player}`;
+
+const td2=document.createElement("td");
+td2.textContent=score;
+
+applyScoreClass(td2,score);
+
+tr.append(td1,td2);
+
+table.appendChild(tr);
+
+});
+
+}
+
+/* =========================
+   PICKS TABLE
+========================= */
+
+function drawPicks(data,tableID){
+
+const table=document.getElementById(tableID);
+
+table.innerHTML="";
+
+if(!data.length){
+
+table.innerHTML="<tr><td>No data</td></tr>";
+
+return;
+
+}
+
+const headers=Object.keys(data[0]).slice(0,8);
+
+const picks=data.slice(0,8);
+
+const scores=data.slice(8,16);
+
+const hr=document.createElement("tr");
+
+headers.forEach(h=>{
+
+const th=document.createElement("th");
+
+th.textContent=h;
+
+hr.appendChild(th);
+
+});
+
+table.appendChild(hr);
+
+picks.forEach((pickRow,i)=>{
+
+const row=document.createElement("tr");
+
+const scoreRow=scores[i] || {};
+
+headers.forEach(h=>{
+
+const td=document.createElement("td");
+
+const player=pickRow[h] || "";
+
+const score=scoreRow[h] || "";
+
+if(score){
+
+td.innerHTML=`${player}<br>
+<span style="font-weight:bold;">(${score})</span>`;
+
+}else{
+
+td.textContent=player;
+
+}
+
+row.appendChild(td);
+
+});
+
+table.appendChild(row);
+
+});
+
+}
+
+/* =========================
+   OVERALL STANDINGS
+========================= */
+
+function drawOverall(data){
+
+const table=document.getElementById("overallTable");
+
+table.innerHTML="";
+
+if(!data.length){
+
+table.innerHTML="<tr><td>No data</td></tr>";
+
+return;
+
+}
+
+const keys=Object.keys(data[0]);
+
+const header=document.createElement("tr");
+
+header.innerHTML="<th>Player</th><th>Total</th>";
+
+table.appendChild(header);
+
+data.forEach((row,i)=>{
+
+const tr=document.createElement("tr");
+
+const player=row[keys[0]] || "";
+const total=row[keys[1]] || "";
+
+const td1=document.createElement("td");
+td1.textContent=`${i+1}. ${player}`;
+
+const td2=document.createElement("td");
+td2.textContent=total;
+
+applyScoreClass(td2,total);
+
+tr.append(td1,td2);
+
+table.appendChild(tr);
+
+});
+
+}
+
+/* =========================
+   US OPEN STANDINGS
+========================= */
+
+fetch(`https://opensheet.elk.sh/${usOpenSheet}/USOpenLeaderboard`)
+.then(r=>r.json())
+.then(d=>drawLeaderboard(d,"usOpenLeaderboardTable"));
+
+/* =========================
+   US OPEN PICKS
+========================= */
+
+fetch(`https://opensheet.elk.sh/${usOpenSheet}/USOpen`)
+.then(r=>r.json())
+.then(d=>drawPicks(d,"usOpenTable"));
+
+/* =========================
+   OVERALL STANDINGS
+========================= */
+
+fetch(`https://opensheet.elk.sh/${overallSheet}/Scores`)
+.then(r=>r.json())
+.then(d=>drawOverall(d));
+
+/* =========================
+   MASTERS STANDINGS
+========================= */
+
+fetch(`https://opensheet.elk.sh/${mastersSheet}/TheMastersLeaderboard`)
+.then(r=>r.json())
+.then(d=>drawLeaderboard(d,"mastersLeaderboardTable"));
+
+/* =========================
+   PGA STANDINGS
+========================= */
+
+fetch(`https://opensheet.elk.sh/${pgaSheet}/PGAChampLeaderboard`)
+.then(r=>r.json())
+.then(d=>drawLeaderboard(d,"pgaLeaderboardTable"));
+
+/* =========================
+   THE OPEN STANDINGS
+========================= */
+
+fetch(`https://opensheet.elk.sh/${openSheet}/TheOpenLeaderboard`)
+.then(r=>r.json())
+.then(d=>drawLeaderboard(d,"openLeaderboardTable"));
+
+/* =========================
+   THE OPEN PICKS
+========================= */
+
+fetch(`https://opensheet.elk.sh/${openSheet}/TheOpen`)
+.then(r=>r.json())
+.then(d=>drawPicks(d,"openTable"));
+
+/* =========================
+   AUTO REFRESH
+========================= */
+
+setInterval(
+()=>location.reload(),
+30000
+);
+
+</script>
+
+</body>
+</html>
