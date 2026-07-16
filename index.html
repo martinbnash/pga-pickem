@@ -380,9 +380,11 @@ fetch(`https://opensheet.elk.sh/${openSheet}/TheOpenLeaderboard`)
    THE OPEN PICKS
 ========================= */
 
-fetch(`https://opensheet.elk.sh/${openSheet}/TheOpenChampionship`)
-.then(r=>r.json())
-.then(d=>drawPicks(d,"openTable"));
+fetch(`https://opensheet.elk.sh/${openSheet}/TheOpenLeaderboard`)
+.then(r => r.json())
+.then(d => drawPicks(d, "openTable"));fetch(`https://opensheet.elk.sh/${openSheet}/TheOpenLeaderboard`)
+.then(r => r.json())
+.then(d => drawPicks(d, "openTable"));
 
 /* =========================
    AUTO REFRESH
